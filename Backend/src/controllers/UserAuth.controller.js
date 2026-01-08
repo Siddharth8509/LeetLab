@@ -1,0 +1,81 @@
+import express from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
+import User  from "../model/user.js";
+import validate from "../utils/validator.js";
+import redisClient from "../config/redis.js";
+
+const registerUser = async(req,res)=>{
+    try 
+    {
+        validate(req.body);
+        
+        req.body.role = "user";
+        const {password , ...data} = req.body;
+        const emailId = req.body.emailId;
+        const hashedPassword = await bcrypt.hash(password,10);
+        const newUser = await User.create({password : hashedPassword ,...data});
+
+        const token = jwt.sign({_id:newUser._id,emailId:emailId},process.env.JWT_SECRET,{expiresIn : 60*60});
+        
+        res.cookie("token",token,{maxAge : 60*60*1000});
+        res.status(201).send("User created successfully!");
+    } 
+    catch (error) 
+    {
+        res.status(400).send(error.message);
+    }
+}
+
+const loginUser = async(req,res)=>{
+    try 
+    {
+        const {emailId , password} = req.body;
+        
+        if(!emailId)
+            throw new Error("Invalid credentials");
+        if(!password)
+            throw new Error("Invalid credentials");
+
+        const userData = await User.findOne({emailId});
+        if(!userData)
+            throw new Error("User doesn't exist");
+
+        const realPassword = userData.password;
+
+        const verifyPassword = await bcrypt.compare(password,realPassword);
+        if(!verifyPassword)
+            throw new Error("Enter a valid password");
+
+        const token = jwt.sign({_id:userData._id,emailId:emailId},process.env.JWT_SECRET,{expiresIn:'1h'});
+
+        res.cookie("token",token,{maxAge:60*60*1000});
+        res.status(202).send("User logged in successfully");
+    } 
+    catch (error) 
+    {
+        res.status(401).send(error.message)
+    }
+}
+
+const logoutUser = async(req,res)=>{
+    try 
+    {
+        const token = req.cookies?.token;
+        const payload = jwt.decode(token);
+        const expTime = payload.exp;
+
+        await redisClient.set(`token:${token}`,"Blocked");
+        await redisClient.expireAt(`token:${token}`,expTime);
+
+        res.cookie("token",null,{expires : new Date(Date.now())});
+        res.status(200).send("Logout successfully");
+    } 
+    catch (error) 
+    {
+        res.status(401).send(error.message);
+    }
+}
+
+export {registerUser,logoutUser,loginUser}
