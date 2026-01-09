@@ -3,13 +3,13 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import User  from "../model/user.js";
-import validate from "../utils/validator.js";
 import redisClient from "../config/redis.js";
+import authValidate from "../utils/authValidator.js";
 
 const registerUser = async(req,res)=>{
     try 
     {
-        validate(req.body);
+        authValidate(req.body);
         
         req.body.role = "user";
         const {password , ...data} = req.body;
@@ -17,7 +17,7 @@ const registerUser = async(req,res)=>{
         const hashedPassword = await bcrypt.hash(password,10);
         const newUser = await User.create({password : hashedPassword ,...data});
 
-        const token = jwt.sign({_id:newUser._id,emailId:emailId},process.env.JWT_SECRET,{expiresIn : 60*60});
+        const token = jwt.sign({_id:newUser._id,emailId:emailId,role:newUser.role},process.env.JWT_SECRET,{expiresIn : 60*60});
         
         res.cookie("token",token,{maxAge : 60*60*1000});
         res.status(201).send("User created successfully!");
@@ -48,7 +48,7 @@ const loginUser = async(req,res)=>{
         if(!verifyPassword)
             throw new Error("Enter a valid password");
 
-        const token = jwt.sign({_id:userData._id,emailId:emailId},process.env.JWT_SECRET,{expiresIn:'1h'});
+        const token = jwt.sign({_id:userData._id,emailId:emailId,role:userData.role},process.env.JWT_SECRET,{expiresIn:'1h'});
 
         res.cookie("token",token,{maxAge:60*60*1000});
         res.status(202).send("User logged in successfully");
@@ -78,4 +78,26 @@ const logoutUser = async(req,res)=>{
     }
 }
 
-export {registerUser,logoutUser,loginUser}
+const adminRegister = async(req,res)=>{
+    try 
+    {
+        authValidate(req.body);
+        
+        req.body.role = "admin";
+        const {password , ...data} = req.body;
+        const emailId = req.body.emailId;
+        const hashedPassword = await bcrypt.hash(password,10);
+        const newUser = await User.create({password : hashedPassword ,...data});
+
+        const token = jwt.sign({_id:newUser._id,emailId:emailId,role:newUser.role},process.env.JWT_SECRET,{expiresIn : 60*60});
+        
+        res.cookie("token",token,{maxAge : 60*60*1000});
+        res.status(201).send("User created successfully!");
+    } 
+    catch (error) 
+    {
+        res.status(400).send(error.message);
+    }
+}
+
+export {registerUser,logoutUser,loginUser,adminRegister}

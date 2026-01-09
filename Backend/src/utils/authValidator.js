@@ -1,6 +1,6 @@
 import validator from "validator"
 
-function validate(data)
+function authValidate(data)
 {
     //check for mandatory fields
     const mandatory = ["firstname","age","password","gender","emailId"];
@@ -46,4 +46,4 @@ function validate(data)
     return true;
 }
 
-export default validate;
+export default authValidate;

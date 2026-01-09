@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import dbConnection from "./config/database.js";
 import authRouter from "./routes/auth.routes.js";
 import redisClient from "./config/redis.js";
+import problemRouter from "./routes/problem.routes.js";
 
 const app = express();
 app.use(express.json());
@@ -27,4 +28,5 @@ async function connection()
 
 connection();
 
-app.use("/api",authRouter);
+app.use("/user",authRouter);
+app.use("/problem",problemRouter);
