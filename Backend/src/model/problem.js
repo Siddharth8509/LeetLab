@@ -9,7 +9,7 @@ const problemSchema = new Schema({
     difficulty : {
         type : String,
         enum : ["easy","medium","hard"],
-        require : true
+        required : true
     },
     tags : {
         type : String,
@@ -70,10 +70,21 @@ const problemSchema = new Schema({
         }
     }],
     problemCreator : {
-        type : Schema.type.ObjectId,
+        type : Schema.Types.ObjectId,
         ref : "user",
         required : true
-    }
+    },
+    referenceSolution : [{
+        language :{
+            type : String,
+            required : true,
+            enum : ["JavaScript","Java","C++","Python"]
+        },
+        solution : {
+            type : String,
+            required : true
+        } 
+    }]
 })
 
 const problem = mongoose.model("problem",problemSchema);
