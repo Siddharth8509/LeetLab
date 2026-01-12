@@ -6,13 +6,13 @@ import authMiddleware from "../middleware/auth.middleware.js";
 
 //In this we just have to validate the admin
 problemRouter.post("/create",adminMiddleware,createProblem);
-problemRouter.get("/:id",adminMiddleware,getProblemById);
-problemRouter.get("/",adminMiddleware,problemFetchAll);
-problemRouter.patch("/update/:id",adminMiddleware,updateProblem);
+problemRouter.put("/update/:id",adminMiddleware,updateProblem);
 problemRouter.delete("/delete/:id",adminMiddleware,deleteProblem);
 
 
 //In this we just have to validate the user
 problemRouter.get("/user",authMiddleware,solvedProblemByUser);
+problemRouter.get("/problemById/:id",authMiddleware,getProblemById);
+problemRouter.get("/getAllProblems",authMiddleware,problemFetchAll);
 
 export default problemRouter;

@@ -2,6 +2,7 @@ import {getLanguageId,submitBatch,submitToken} from "../utils/problem.utils.js";
 import mongoose, { mongo } from "mongoose";
 import problem from "../model/problem.js";
 import user from "../model/user.js"
+import { response } from "express";
 
 const createProblem = async(req,res)=>{
     const {
@@ -67,14 +68,11 @@ const getProblemById = async (req, res) => {
     
 
     const problemDoc = await problem.findById(id).select("title");
-
     if (!problemDoc)
       return res.status(404).send("Problem does not exist");
     
 
-    return res.status(200).json({
-      title: problemDoc.title
-    });
+    return res.status(200).json(problemDoc);
   } 
   catch (error) 
   {
@@ -85,8 +83,14 @@ const getProblemById = async (req, res) => {
 const problemFetchAll = async(req,res) => {
     try 
     {
-        const titles = await problem.find().select("title");
-        res.status(200).send(titles);
+        const page = parseInt(req.params.page) || 1;
+        const problemlimit = parseInt(req.params.limit) || 10;
+
+        const problemskip = (page - 1) * limit;
+
+        const problems = await problem.find({}).skip(problemskip).limit(problemlimit);
+
+        response.status(200).send(problems);
     } 
     catch (error) 
     {
@@ -95,29 +99,70 @@ const problemFetchAll = async(req,res) => {
 }
 
 const updateProblem = async(req,res) => {
+    const {
+        title,difficulty,tags,companies,
+        discription,examples,visibleTestCase,
+        hiddenTestCase,initialCode,problemCreator,
+        referenceSolution
+        } = req.body;
+    const data = req.body;
+    const {id} = req.params;
     try 
     {
-        const data = req.body;
-        if(!data)
-            res.status(404).send("Please enter data to update");
+        
+        if(Object.keys(data).length === 0)
+            return res.status(400).send("Please enter data to update");
 
-        const {id} = req.params;
         if(!id)
-            res.status(404).send("Please send the id of the problem")
+            return res.status(400).send("Please send the id of the problem")
 
         if(!mongoose.Types.ObjectId.isValid(id))
-            res.status(404).send("Please enter a valid id")
+            return res.status(400).send("Please enter a valid id")
 
-        const updatedProblem = await problem.findByIdAndUpdate(id,data,{
-            new : true,
-            runValidators : true
-        })
+        const findProblem = await problem.findById(id);
+        if(!findProblem)
+            return res.status(404).send("Problem does not exist")
 
-        res.status(200).send("Problem updated successfully : " + updatedProblem.title);
+        if(referenceSolution && visibleTestCase)
+        {
+            for(const {language,solution} of referenceSolution)
+            {
+                const languageId = getLanguageId(language);
+
+                const submission = visibleTestCase.map(({input,output})=>({
+                    source_code : solution,
+                    language_id : languageId,
+                    stdin : input,
+                    expected_output : output
+                }))
+
+                const submitResult = await submitBatch(submission);
+                const resultToken = submitResult.map((value)=>value.token)
+                const testResults = await submitToken(resultToken);
+
+                for (const test of testResults) {
+                    if (test.status_id === 3)
+                        continue;
+
+                    if (test.status_id === 4)
+                        return res.status(406).send("Wrong Answer");
+
+                    if (test.status_id === 5)
+                        return res.status(406).send("Time Limit Exceeded");
+
+                    if (test.status_id === 6)
+                        return res.status(406).send("Compilation Error");
+
+                    return res.status(406).send("Runtime Error");
+                    }
+            }
+        }
+        await problem.findByIdAndUpdate(id,data,{runValidators : true, new : true});
+        res.status(200).send("Problem updated successfully");
     } 
     catch (error) 
     {
-        res.status(500).send("Error occured while updating"+error)
+        res.status(500).send("Error occured while updating"+error.message);
     }
 }
 
@@ -152,13 +197,16 @@ const deleteProblem = async(req,res) => {
     {
         const {id} = req.params;
         if(!id)
-            res.status(404).send("Please enter a valid id");
+            return res.status(400).send("Please enter a valid id");
         
         if(!mongoose.Types.ObjectId.isValid(id))
-            res.status(404).send("Invalid id")
+            res.status(400).send("Invalid id")
+
+        const existingProblem = await problem.findById(id);
+        if(!existingProblem)
+            return res.status(404).send("The problem does not exist")
 
         const deletedProblem = await problem.findByIdAndDelete(id);
-
         return res.status(200).send("Problem deleted successfully");
     } 
     catch (error) 
