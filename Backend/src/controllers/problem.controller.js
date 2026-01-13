@@ -1,8 +1,8 @@
 import {getLanguageId,submitBatch,submitToken} from "../utils/problem.utils.js";
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 import problem from "../model/problem.js";
 import user from "../model/user.js"
-import { response } from "express";
+
 
 const createProblem = async(req,res)=>{
     const {
@@ -30,6 +30,8 @@ const createProblem = async(req,res)=>{
             const resultToken = submitResult.map((value)=>value.token)
             const testResults = await submitToken(resultToken);
 
+            console.log(testResults);
+
             for (const test of testResults) {
                 if (test.status_id === 3)
                     continue;
@@ -48,8 +50,9 @@ const createProblem = async(req,res)=>{
         }
         await problem.create({ ...req.body, problemCreator: req.userId });
         return res.status(201).send("Problem created successfully");    
-    } 
-    catch (error) {
+    }  
+    catch (error) 
+    {
         console.error("Error creating problem:", error);
         res.status(500).send("Internal server error");
     }
@@ -88,7 +91,7 @@ const problemFetchAll = async(req,res) => {
 
         const problemskip = (page - 1) * limit;
 
-        const problems = await problem.find({}).skip(problemskip).limit(problemlimit);
+        const problems = await problem.find({}).select("title _id difficulty tags").skip(problemskip).limit(problemlimit);
 
         response.status(200).send(problems);
     } 
@@ -177,14 +180,13 @@ const solvedProblemByUser = async(req,res) => {
             return res.status(400).send("Invalid user id");
     
 
-        const userData = await user.findById(userId).select("problemSolved");
+        const userData = await user.findById(userId).populate("problemSolved","title _id difficulty tags");
 
         if (!userData) 
             return res.status(404).send("User not found");
     
 
         return res.status(200).json({solvedCount: userData.problemSolved.length,problems: userData.problemSolved});
-
     } 
     catch (error) 
     {

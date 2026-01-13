@@ -5,7 +5,7 @@ dotenv.config();
 function getLanguageId(lang)
 {
     const language = {
-        "c++" : 54,
+        "cpp" : 54,
         "java" : 62,
         "javascript" : 63,
         "python" : 71

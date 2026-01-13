@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 const {Schema} = mongoose;
-import User from "./user.js";
+import user from "./user.js";
 import problem from "./problem.js";
 
 const submissionSchema = new Schema(
@@ -12,7 +12,49 @@ const submissionSchema = new Schema(
         },
         problemId : {
             type : Schema.Types.ObjectId,
-            ref :
+            ref : "problem",
+            required : true
+        },
+        code : {
+            type : String,
+            required : true
+        },
+        language : {
+            type : String,
+            required : true,
+            enum : ["javascript","cpp","java","python"]
+        },
+        status : {
+            type : String,
+            enum : ["pending","accepted","compilation error","time limit exceeded"],
+            default : "pending"
+        },
+        runtime : {
+            type : Number,
+            default : 0
+        },
+        memory : {
+            type : Number,
+            default : 0
+        },
+        errorMessage : {
+            type : String,
+            default : ""
+        },
+        testCasesPassed : {
+            type : Number,
+            default : 0
+        },
+        testCasesTotal : {
+            type : Number,
+            default : 0
         }
+    },
+    {
+        timestamps : true
     }
 )
+
+const submission = mongoose.model("submission",submissionSchema);
+
+export default submission;

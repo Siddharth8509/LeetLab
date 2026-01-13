@@ -6,6 +6,7 @@ import dbConnection from "./config/database.js";
 import authRouter from "./routes/auth.routes.js";
 import redisClient from "./config/redis.js";
 import problemRouter from "./routes/problem.routes.js";
+import submissionRouter from "./routes/submission.routes.js";
 
 const app = express();
 app.use(express.json());
@@ -30,3 +31,4 @@ connection();
 
 app.use("/user",authRouter);
 app.use("/problem",problemRouter);
+app.use("/submission",submissionRouter);

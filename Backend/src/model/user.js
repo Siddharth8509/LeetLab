@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
+import problem from "./problem.js";
 
 const userSchema = new Schema(
     {
@@ -47,7 +48,10 @@ const userSchema = new Schema(
         required : true
     },
     problemSolved : {
-        type : [String],
+        type : [{
+            type : Schema.Types.ObjectId,
+            ref : "problem"
+        }],
         default : []
     }
     },
@@ -56,6 +60,6 @@ const userSchema = new Schema(
     }
 )
 
-const User = mongoose.model("User",userSchema);
+const user = mongoose.model("user",userSchema);
 
-export default User;
+export default user;
