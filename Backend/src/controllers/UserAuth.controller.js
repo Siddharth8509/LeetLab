@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 import User  from "../model/user.js";
 import redisClient from "../config/redis.js";
 import authValidate from "../utils/authValidator.js";
+import submission from "../model/submission.js"
+import user from "../model/user.js";
 
 const registerUser = async(req,res)=>{
     try 
@@ -19,8 +21,20 @@ const registerUser = async(req,res)=>{
 
         const token = jwt.sign({_id:newUser._id,emailId:emailId,role:newUser.role},process.env.JWT_SECRET,{expiresIn : 60*60});
         
+        const userData = await User.findOne({emailId});
+        const reply = {
+            _id: userData._id,
+            firstname: userData.firstname,
+            lastname: userData.lastname,
+            emailId: userData.emailId,
+            role: userData.role
+        }
+
         res.cookie("token",token,{maxAge : 60*60*1000});
-        res.status(201).send("User created successfully!");
+        res.status(201).json({
+            user : reply,
+            message : "User registered successfully"
+        });
     } 
     catch (error) 
     {
@@ -49,9 +63,19 @@ const loginUser = async(req,res)=>{
             throw new Error("Enter a valid password");
 
         const token = jwt.sign({_id:userData._id,emailId:emailId,role:userData.role},process.env.JWT_SECRET,{expiresIn:'1h'});
+        const reply = {
+            _id: userData._id,
+            firstname: userData.firstname,
+            lastname: userData.lastname,
+            emailId: userData.emailId,
+            role: userData.role
+        }
 
         res.cookie("token",token,{maxAge:60*60*1000});
-        res.status(202).send("User logged in successfully");
+        res.status(202).json({
+            user : reply,
+            message : "User registered successfully"
+        });
     } 
     catch (error) 
     {
@@ -100,4 +124,29 @@ const adminRegister = async(req,res)=>{
     }
 }
 
-export {registerUser,logoutUser,loginUser,adminRegister}
+const deleteUser = async(req,res)=>{
+    try
+    {
+        const id = req.userId;
+        if(!id)
+            return res.status(401).send("Invalid token");
+
+        if (!mongoose.Types.ObjectId.isValid(id)) 
+            return res.status(400).send("Invalid user id");
+
+        const userExist = await User.findById(id);
+        if(!userExist)
+            return res.status(404).send("user does not exist");
+
+        await submission.deleteMany({userId : id});
+        await User.findByIdAndDelete(id);
+
+        return res.status(200).send("user deleted successfully");
+    }
+    catch(error)
+    {
+        res.status(500).send("Unexpected error occured :"+error.message);
+    }
+}
+
+export {registerUser,logoutUser,loginUser,adminRegister,deleteUser};

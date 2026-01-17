@@ -3,7 +3,7 @@ import validator from "validator"
 function authValidate(data)
 {
     //check for mandatory fields
-    const mandatory = ["firstname","age","password","gender","emailId"];
+    const mandatory = ["firstname","password","emailId"];
     for (const field of mandatory) 
     {
         if (data[field] === undefined || data[field] === null || data[field] === "")
@@ -23,15 +23,20 @@ function authValidate(data)
     }
 
     //validate age
-    const age = data.age;
-    if(6>age || age>60)
-        throw new Error("You are not eligible to use this application")
-
+    if (data.age !== undefined){
+        const age = data.age;
+        if(6>age || age>60)
+            throw new Error("You are not eligible to use this application")
+    }
     //validate gender
-    const gender = data.gender.toLowerCase().trim();
-    const validGender = ["male","female","others"];
-    if(!validGender.includes(gender))
-        throw new Error("Invalid gender");
+    const gender = data.gender?.toLowerCase().trim() || null;
+    if (gender !== null) 
+    {
+        const validGender = ["male", "female", "others"];
+        if (!validGender.includes(gender)) 
+            throw new Error("Invalid gender");
+    }
+
 
     //validate password
     const password = data.password;

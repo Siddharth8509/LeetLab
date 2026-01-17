@@ -55,6 +55,9 @@ const submissionSchema = new Schema(
     }
 )
 
+submissionSchema.index({ userId: 1, problemId: 1 });
+submissionSchema.index({ userId: 1, createdAt: -1 });
+
 const submission = mongoose.model("submission",submissionSchema);
 
 export default submission;

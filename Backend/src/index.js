@@ -7,11 +7,17 @@ import authRouter from "./routes/auth.routes.js";
 import redisClient from "./config/redis.js";
 import problemRouter from "./routes/problem.routes.js";
 import submissionRouter from "./routes/submission.routes.js";
+import cors from "cors";
 
+dotenv.config();
 const app = express();
+
 app.use(express.json());
 app.use(cookieParser());
-dotenv.config();
+app.use(cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+}));
 
 const port = process.env.PORT || 3000
 async function connection()

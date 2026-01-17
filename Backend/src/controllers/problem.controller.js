@@ -2,6 +2,7 @@ import {getLanguageId,submitBatch,submitToken} from "../utils/problem.utils.js";
 import mongoose from "mongoose";
 import problem from "../model/problem.js";
 import user from "../model/user.js"
+import submission from "../model/submission.js";
 
 
 const createProblem = async(req,res)=>{
@@ -217,4 +218,26 @@ const deleteProblem = async(req,res) => {
     }
 }
 
-export  {createProblem,getProblemById,problemFetchAll,updateProblem,solvedProblemByUser,deleteProblem};
+const getSubmission = async (req, res) => {
+  try 
+  {
+    const userId = req.userId;
+    const problemId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(problemId)) {
+      return res.status(400).send("Invalid problemId" );
+    }
+
+    const submissionsDone = await submission.find({ userId,problemId});
+    if(submissionsDone.length == 0)
+        res.status(200).send("No submission for this problem");
+
+    res.status(200).send(submissionsDone);
+  } 
+  catch (err) 
+  {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export  {createProblem,getProblemById,problemFetchAll,updateProblem,solvedProblemByUser,deleteProblem,getSubmission};

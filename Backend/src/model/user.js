@@ -21,7 +21,6 @@ const userSchema = new Schema(
         type : Number,
         min : 6,
         max : 60,
-        required : true
     },
     emailId : {
         type : String,
@@ -45,7 +44,6 @@ const userSchema = new Schema(
     gender : {
         type : String,
         enum : ["male","female","others"],
-        required : true
     },
     problemSolved : {
         type : [{
