@@ -92,9 +92,18 @@ const problemFetchAll = async(req,res) => {
 
         const problemskip = (page - 1) * limit;
 
-        const problems = await problem.find({}).select("title _id difficulty tags").skip(problemskip).limit(problemlimit);
+        const problems = await problem.find({}).select("title _id difficulty tags ").limit(problemlimit);
+        
+        const result = {
+            problemId : problems._id,
+            title : problems.title,
+            difficulty : problems.difficulty,
+            tags : problems.tags
+        }
 
-        response.status(200).send(problems);
+        return res.status(200).json({
+            problems : result,
+        });
     } 
     catch (error) 
     {

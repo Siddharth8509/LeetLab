@@ -84,7 +84,19 @@ const problemSchema = new Schema({
             type : String,
             required : true
         } 
-    }]
+    }],
+    acceptedSubmissions: {
+    type: Number,
+    default: 0,
+    },
+    totalSubmissions: {
+    type: Number,
+    default: 0,
+    },
+    acceptanceRate: {
+    type: Number,
+    default: 0,
+    },
 })
 
 const problem = mongoose.model("problem",problemSchema);
