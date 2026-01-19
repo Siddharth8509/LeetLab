@@ -6,6 +6,7 @@ import Homepage from './pages/Homepage';
 import { Navigate, Route,Routes } from 'react-router';
 import { useDispatch,useSelector } from 'react-redux';
 import { checkAuth } from './authSlice';
+import Problemset from './pages/Problemset';
 
 function App() {
   const {isAuthenticated} = useSelector((state)=>state.auth);
@@ -21,6 +22,7 @@ function App() {
         <Route path="/" element={isAuthenticated ? <Homepage /> : <Navigate to="/Signup"/>}/>
         <Route path="/Login" element={isAuthenticated ? <Navigate to="/"/> : <Loginpage />} />
         <Route path="/Signup" element={isAuthenticated ? <Navigate to="/"/> : <Signupform />} />
+        <Route path='/ProblemSet'element = {<Problemset/>}></Route>
       </Routes>
     </div>
 
