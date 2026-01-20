@@ -87,12 +87,12 @@ const getProblemById = async (req, res) => {
 const problemFetchAll = async(req,res) => {
     try 
     {
-        const page = parseInt(req.params.page) || 1;
-        const problemlimit = parseInt(req.params.limit) || 10;
+        const page = 1;
+        const problemlimit = parseInt(req.params.limit) || 15;
 
-        const problemskip = (page - 1) * limit;
+        const problemskip = (page - 1) * problemlimit;
 
-        const problems = await problem.find({}).select("title _id difficulty tags ").limit(problemlimit);
+        const problems = await problem.find({}).select("title _id difficulty tags ").skip(problemskip).limit(problemlimit);
         
         const result = {
             problemId : problems._id,
