@@ -7,6 +7,7 @@ import { Navigate, Route,Routes } from 'react-router';
 import { useDispatch,useSelector } from 'react-redux';
 import { checkAuth } from './authSlice';
 import Problemset from './pages/Problemset';
+import Adminpage from './pages/adminPage';
 
 function App() {
   const {isAuthenticated} = useSelector((state)=>state.auth);
@@ -23,6 +24,7 @@ function App() {
         <Route path="/Login" element={isAuthenticated ? <Navigate to="/"/> : <Loginpage />} />
         <Route path="/Signup" element={isAuthenticated ? <Navigate to="/"/> : <Signupform />} />
         <Route path='/ProblemSet'element = {<Problemset/>}></Route>
+        <Route path='/Admin'element = {<Adminpage/>}></Route>
       </Routes>
     </div>
 

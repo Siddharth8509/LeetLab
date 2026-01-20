@@ -2,160 +2,134 @@ import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 import { UserMinusIcon } from "@heroicons/react/20/solid";
 import { logoutUser } from "../authSlice";
-import { useNavigate } from "react-router-dom"; // ✅ correct import
+import { useNavigate } from "react-router-dom";
 import axiosClient from "../utils/axiosClient";
 
 export default function Problemset() {
-    const dispatch = useDispatch();
-    const navigate = useNavigate(); // ✅ must CALL the hook
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-    const user = useSelector((state) => state.auth.user);
-    const { isAuthenticated, loading } = useSelector((state) => state.auth);
+  const user = useSelector((state) => state.auth.user);
+  const { isAuthenticated, loading } = useSelector((state) => state.auth);
 
-    const handleLogout = () => {
-        dispatch(logoutUser()); // ✅ invoke thunk
-    };
+  const handleLogout = () => {
+    dispatch(logoutUser());
+  };
 
-    // ❌ page cannot be a normal variable
-    // ✅ make it state
-    const [page, setPage] = useState(1);
+  useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate("/login");
+    }
+  }, [loading, isAuthenticated, navigate]);
 
-    const [problem, setProblem] = useState([]);
+  const [problems, setProblems] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
 
-    // ---------------- INITIAL FETCH ----------------
-    useEffect(() => {
-        let mounted = true;
 
-        async function fetchData() {
-            try {
-                const res = await axiosClient.get("/problem/getAllProblems", {
-                    params: {
-                        limit: 10,
-                        offset: 0,
-                    },
-                });
+  useEffect(() => {
+  const fetchProblems = async () => {
+    const res = await axiosClient.get(`/problem/getAllProblems?page=1`);
+    setProblems(res.data.problems);
+    setHasMore(res.data.hasMore);
+  };
 
-                if (mounted) {
-                    setProblem(res.data.problems); // ✅ assume backend returns problems[]
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
+  fetchProblems();
+}, []);
 
-        fetchData(); // ✅ YOU FORGOT TO CALL THIS EARLIER
+  console.log(problems)
 
-        return () => {
-            mounted = false;
-        };
-    }, []);
+  const loadMore = async () => {
+  if (!hasMore) return;
 
-    // ---------------- LOAD MORE ----------------
-    useEffect(() => {
-        if (page === 1) return; // ⛔ avoid duplicate initial fetch
+  const nextPage = page + 1;
+  const res = await axiosClient.get(
+    `/problem/getAllProblems?page=${nextPage}`
+  );
 
-        let mounted = true;
+  setProblems(prev => [...prev, ...res.data.problems]);
+  setPage(nextPage);
+  setHasMore(res.data.hasMore);
+  };
+  return (
+    <>
+      <div className="min-h-screen bg-gray-50">
 
-        async function fetchMore() {
-            try {
-                const res = await axiosClient.get("/problem/getAllProblems", {
-                    params: {
-                        limit: 10,
-                        offset: (page - 1) * 10,
-                    },
-                });
+        <div className="bg-amber-600 h-16 w-full shadow-md">
+          <div className="flex justify-between items-center mx-auto container px-5 h-full">
+            <h1 className="text-3xl font-bold text-black">LeetLab</h1>
 
-                if (mounted) {
-                    // ❌ never mutate state directly
-                    // ✅ functional update
-                    setProblem((prev) => [...prev, ...res.data.problems]);
-                }
-            } catch (err) {
-                console.error(err);
-            }
-        }
+            <div className="dropdown dropdown-end">
+              <div tabIndex={0} role="button" className="btn font-semibold text-lg capitalize">{user?.firstname}</div>
+              <ul tabIndex="-1" className="dropdown-content menu bg-base-100 rounded-box  w-52 p-2 shadow">
+                <li onClick={handleLogout}>
+                  <a className="flex justify-between">
+                    Logout
+                    <UserMinusIcon className="h-5 w-5" />
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
 
-        fetchMore();
+        <div className="container mx-auto px-5 py-10">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">Problems</h2>
+            <div className="overflow-x-auto bg-white rounded-lg shadow">
 
-        return () => {
-            mounted = false;
-        };
-    }, [page]);
-
-    // ---------------- AUTH REDIRECT ----------------
-    useEffect(() => {
-        if (!loading && !isAuthenticated) {
-            navigate("/login");
-        }
-    }, [loading, isAuthenticated, navigate]);
-
-    return (
-        <>
-            {/* ---------------- HEADER ---------------- */}
-            <div className="h-15 w-screen bg-amber-600">
-                <div className="flex justify-between mx-auto container py-2.5 px-5">
-                    <h1 className="text-3xl font-bold text-black my-2">
-                        LeetLab
-                    </h1>
-
-                    <div className="dropdown">
-                        <div
-                            tabIndex={0}
-                            role="button"
-                            className="bg-black btn btn-wide px-9 py-1"
-                        >
-                            {user?.firstname}
+              <table className="table w-full">
+              
+              <thead>
+                <tr className="bg-gray-200 text-gray-700">
+                  <th>Title</th>
+                  <th>Difficulty</th>
+                  <th>Tags</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              
+              <tbody>
+                {problems.length > 0 ? (
+                  problems.map((prob) => ( 
+                    <tr key={prob._id} className="hover:bg-gray-50">
+                      <td className="font-medium text-lg text-gray-900">{prob.title}</td>
+                      <td> 
+                        <span className={`badge ${prob.difficulty === 'Easy' ? 'badge-success' : prob.difficulty === 'Medium' ? 'badge-warning' : 'badge-error'} text-white`}>
+                          {prob.difficulty}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="flex flex-wrap gap-1">
+                          {(Array.isArray(prob.tags) ? prob.tags : [prob.tags]).map((tag, index) => (
+                            <span key={index} className="badge badge-outline badge-sm text-black">{tag}</span>
+                          ))}
                         </div>
+                      </td>
+                      <td>
+                        <button className="btn btn-sm btn-primary" onClick={() => navigate(`/problem/${prob._id}`)} >
+                          Solve
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="4" className="text-center text-black font-bold py-4">No problems found</td>
+                  </tr>
+                )}
+              </tbody>
+              </table>
 
-                        <ul className="dropdown-content bg-base-100 rounded-box z-10 p-2 shadow">
-                            <li
-                                className="flex justify-center items-center gap-3 p-2 cursor-pointer"
-                                onClick={handleLogout}
-                            >
-                                Logout
-                                <UserMinusIcon className="h-5 w-5" />
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+          </div>
+        </div>
+        
+        <div className="flex justify-center">
+            <button className="btn" onClick={loadMore}>Load More..</button>
+        </div>
 
-            {/* ---------------- TABLE ---------------- */}
-            <div className="overflow-x-auto mx-10 my-5">
-                <table className="table table-zebra w-full">
-                    <thead>
-                        <tr>
-                            <th>Problem ID</th>
-                            <th>Title</th>
-                            <th>Difficulty</th>
-                            <th>Tags</th>
-                        </tr>
-                    </thead>
+      </div>
 
-                    {/* ❌ you had <tr> wrapping map
-                        ✅ map directly inside tbody */}
-                    <tbody>
-                        {problem.map((prob) => (
-                            <tr key={prob._id}>
-                                <td>{prob._id}</td>
-                                <td>{prob.title}</td>
-                                <td>{prob.difficulty}</td>
-                                <td>{prob.tags.join(", ")}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
 
-                {/* ---------------- LOAD MORE BUTTON ---------------- */}
-                <div className="flex justify-center mt-6">
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => setPage((prev) => prev + 1)}
-                    >
-                        Load More
-                    </button>
-                </div>
-            </div>
-        </>
-    );
+    </>
+  );
 }
