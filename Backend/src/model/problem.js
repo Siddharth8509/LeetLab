@@ -13,11 +13,11 @@ const problemSchema = new Schema({
     },
     tags: {
         type: String,
-        enum: ["Array", "HashTable", "Linked-List", "Stack", "Queue", "Tree", "Graph", "Trie", "Binary seach"],
+        enum: ["Array", "HashTable", "LinkedList", "Stack", "Queue", "Tree", "Graph", "Trie", "BinarySearch"],
         required: true
     },
     companies: {
-        type: String,
+        type: [],
         required: true
     },
     description: {
