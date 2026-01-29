@@ -17,7 +17,7 @@ const problemSchema = new Schema({
         required: true
     },
     companies: {
-        type: [],
+        type: [String],
         required: true
     },
     description: {

@@ -1,3 +1,12 @@
 .app {
   min-height: 100vh;
 }
+/* Hide scrollbar but keep scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Firefox */
+.no-scrollbar {
+  scrollbar-width: none;
+}

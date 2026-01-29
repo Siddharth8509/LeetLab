@@ -16,6 +16,10 @@ export default function Problemset() {
     dispatch(logoutUser());
   };
 
+  const handleAdmin = () => {
+    navigate("/Admin");
+  };
+
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       navigate("/login");
@@ -68,6 +72,11 @@ export default function Problemset() {
                     <UserMinusIcon className="h-5 w-5" />
                   </a>
                 </li>
+                {user?.role == "admin" ? <li onClick={handleAdmin}>
+                  <a className="flex justify-between">
+                    Admin Page
+                  </a>
+                </li> : <div></div>}
               </ul>
             </div>
           </div>
