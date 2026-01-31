@@ -3,29 +3,31 @@ import './App.css'
 import Signupform from './pages/Signupform';
 import Loginpage from './pages/Loginpage';
 import Homepage from './pages/Homepage';
-import { Navigate, Route,Routes } from 'react-router';
-import { useDispatch,useSelector } from 'react-redux';
+import { Navigate, Route, Routes } from 'react-router';
+import { useDispatch, useSelector } from 'react-redux';
 import { checkAuth } from './authSlice';
 import Problemset from './pages/Problemset';
 import Adminpage from './pages/adminPage';
 import Problempage from './pages/Problempage';
+import ProfilePage from './pages/ProfilePage';
 
 function App() {
-  const {isAuthenticated,user} = useSelector((state)=>state.auth);
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
-  useEffect(()=>{
+  useEffect(() => {
     dispatch(checkAuth());
-  },[dispatch])
+  }, [dispatch])
 
   return (
     <div className='app'>
       <Routes>
-        <Route path="/" element={isAuthenticated ? <Homepage /> : <Navigate to="/Signup"/>}/>
-        <Route path="/Login" element={isAuthenticated ? <Navigate to="/"/> : <Loginpage />} />
-        <Route path="/Signup" element={isAuthenticated ? <Navigate to="/"/> : <Signupform />} />
-        <Route path='/ProblemSet'element = {<Problemset/>}></Route>
-        <Route path='/Admin'element = {<Adminpage/>}></Route>
-        <Route path='/Problem/:id'element = {<Problempage/>}></Route>
+        <Route path="/" element={isAuthenticated ? <Homepage /> : <Navigate to="/Signup" />} />
+        <Route path="/Login" element={isAuthenticated ? <Navigate to="/" /> : <Loginpage />} />
+        <Route path="/Signup" element={isAuthenticated ? <Navigate to="/" /> : <Signupform />} />
+        <Route path='/ProblemSet' element={<Problemset />}></Route>
+        <Route path='/Admin' element={<Adminpage />}></Route>
+        <Route path='/Problem/:id' element={<Problempage />}></Route>
+        <Route path='/Profile' element={<ProfilePage />}></Route>
       </Routes>
     </div>
 

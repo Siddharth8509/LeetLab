@@ -143,4 +143,53 @@ const deleteUser = async (req, res) => {
     }
 }
 
-export { registerUser, logoutUser, loginUser, adminRegister, deleteUser };
+const getUserProfile = async (req, res) => {
+    try {
+        const userId = req.userId; // Middleware should set this
+        // Use 'User' (capital U) as imported in the file line 5: import User from "../model/user.js";
+        // Also import is: import user from "../model/user.js"; on line 9. It's redundant but I must use one.
+        // The existing code uses 'User' in register/login.
+
+        const userInfo = await User.findById(userId).populate({
+            path: "problemSolved",
+            select: "difficulty"
+        });
+
+        if (!userInfo) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const totalSolved = userInfo.problemSolved.length;
+        const easySolved = userInfo.problemSolved.filter(p => p.difficulty === "easy").length;
+        const mediumSolved = userInfo.problemSolved.filter(p => p.difficulty === "medium").length;
+        const hardSolved = userInfo.problemSolved.filter(p => p.difficulty === "hard").length;
+
+        // Populate problemId to get title and difficulty
+        const recentSubmissions = await submission.find({ userId })
+            .sort({ createdAt: -1 })
+            .limit(10)
+            .populate("problemId", "title difficulty");
+
+        res.status(200).json({
+            user: {
+                _id: userInfo._id,
+                firstname: userInfo.firstname,
+                lastname: userInfo.lastname,
+                email: userInfo.emailId,
+                role: userInfo.role,
+                username: userInfo.firstname // or however you want to display it
+            },
+            stats: {
+                totalSolved,
+                easySolved,
+                mediumSolved,
+                hardSolved
+            },
+            recentSubmissions
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching profile: " + error.message });
+    }
+}
+
+export { registerUser, logoutUser, loginUser, adminRegister, deleteUser, getUserProfile };
