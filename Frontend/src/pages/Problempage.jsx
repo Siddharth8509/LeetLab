@@ -11,8 +11,10 @@ import BottomRight from "../components/BottomRight";
 export default function Problempage()
 {
     let {id} = useParams();
+
     const [problemData,setProblemData] = useState(null);
-    
+    const[code,setCode] = useState("");
+
     //for fetching problem data
     useEffect(()=>{
     const fetchProblemData = async() =>{
@@ -91,22 +93,29 @@ export default function Problempage()
 
         
         <div className="bg-blue-950 h-[calc(100vh-60px)]">
-        
             <Group orientation="horizontal">
 
-                <Panel><LeftPanel prop={problemData}></LeftPanel></Panel>
-                <Separator className="w-1 cursor-row-resize bg-gray-400" />
-                
                 <Panel>
+                    {problemData && ( 
+                        <LeftPanel prop={{ problemData }} />
+                    )}
+                </Panel>
+                <Separator className="w-1 bg-gray-400 cursor-col-resize" />
+                <Panel>
+                    {problemData && (
                     <Group orientation="vertical">
-                        <Panel className="bg-blue-600 overflow-auto" ><UpperRightPanle prop={problemData}></UpperRightPanle></Panel>
-                        <Separator className="bg-gray-400 h-1 cursor-row-resize"/>
-                        <Panel className="bg-red-400" defaultSize="25%"><BottomRight prop={problemData}></BottomRight></Panel>
+                        <Panel className="bg-blue-600 overflow-auto">
+                        <UpperRightPanle prop={problemData} onCodeChange={setCode}/>
+                        </Panel>
+                        <Separator className="h-1 bg-gray-400 cursor-row-resize" />
+                        <Panel defaultSize="30%" className="bg-red-400">
+                        <BottomRight prop={problemData} />
+                        </Panel>
                     </Group>
+                    )}
                 </Panel>
 
             </Group>
-
         </div>
 
     </div>

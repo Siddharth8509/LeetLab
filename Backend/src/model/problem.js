@@ -97,6 +97,10 @@ const problemSchema = new Schema({
         type: Number,
         default: 0,
     },
+    editorial: {
+    type: String,
+    required: true
+  },
 })
 
 const problem = mongoose.model("problem", problemSchema);

@@ -11,9 +11,8 @@ import Adminpage from './pages/adminPage';
 import Problempage from './pages/Problempage';
 
 function App() {
-  const {isAuthenticated} = useSelector((state)=>state.auth);
+  const {isAuthenticated,user} = useSelector((state)=>state.auth);
   const dispatch = useDispatch();
-
   useEffect(()=>{
     dispatch(checkAuth());
   },[dispatch])
