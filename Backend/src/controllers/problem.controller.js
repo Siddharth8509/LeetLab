@@ -119,7 +119,7 @@ const problemFetchAll = async (req, res) => {
 const updateProblem = async (req, res) => {
     const {
         title, difficulty, tags, companies,
-        discription, examples, visibleTestCase,
+        description, examples, visibleTestCase,
         hiddenTestCase, initialCode, problemCreator,
         referenceSolution
     } = req.body;

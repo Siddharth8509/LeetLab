@@ -20,6 +20,23 @@ export default function Problemset() {
   const [problems, setProblems] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [solvedProblems, setSolvedProblems] = useState(new Set());
+
+  // Fetch solved problems
+  useEffect(() => {
+    const fetchSolved = async () => {
+      try {
+        if (!isAuthenticated) return;
+        const res = await axiosClient.get("/problem/user");
+        // res.data.problems is the array of solved problems
+        const solvedIds = new Set(res.data.problems.map(p => p._id));
+        setSolvedProblems(solvedIds);
+      } catch (error) {
+        console.error("Error fetching solved status:", error);
+      }
+    };
+    fetchSolved();
+  }, [isAuthenticated]);
 
   useEffect(() => {
     const fetchProblems = async () => {
@@ -108,8 +125,15 @@ export default function Problemset() {
                       onClick={() => navigate(`/problem/${prob._id}`)}
                     >
                       <td className="pl-6">
-                        {/* Placeholder for solved status if available in future */}
-                        <div className="w-5 h-5 rounded-full border-2 border-gray-600 group-hover:border-amber-500 transition-colors"></div>
+                        {solvedProblems.has(prob._id) ? (
+                          <div className="flex items-center justify-center w-5 h-5 bg-green-500/20 rounded-full border border-green-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                        ) : (
+                          <div className="w-5 h-5 rounded-full border-2 border-gray-600 group-hover:border-amber-500 transition-colors"></div>
+                        )}
                       </td>
                       <td>
                         <div className="font-semibold text-lg text-gray-200 group-hover:text-amber-500 transition-colors">

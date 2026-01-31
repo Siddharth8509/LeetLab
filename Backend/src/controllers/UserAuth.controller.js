@@ -192,4 +192,42 @@ const getUserProfile = async (req, res) => {
     }
 }
 
-export { registerUser, logoutUser, loginUser, adminRegister, deleteUser, getUserProfile };
+const getAllUsers = async (req, res) => {
+    try {
+        // Pagination logic if needed, for now fetch all non-admin users or just all users
+        const users = await User.find({}).select("-password"); // Exclude password
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).send("Error fetching users: " + error.message);
+    }
+}
+
+const updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updates = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).send("Invalid user ID");
+        }
+
+        // Prevent password update via this general endpoint if needed, or hash it if allowed
+        // For now, let's assume we are updating role or basic info. 
+        // If password is included, we should hash it.
+        if (updates.password) {
+            updates.password = await bcrypt.hash(updates.password, 10);
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true }).select("-password");
+
+        if (!updatedUser) {
+            return res.status(404).send("User not found");
+        }
+
+        res.status(200).json({ message: "User updated successfully", user: updatedUser });
+    } catch (error) {
+        res.status(500).send("Error updating user: " + error.message);
+    }
+}
+
+export { registerUser, logoutUser, loginUser, adminRegister, deleteUser, getUserProfile, getAllUsers, updateUser };
